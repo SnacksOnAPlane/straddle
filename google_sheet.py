@@ -21,6 +21,8 @@ class GoogleSheet:
   CLIENT_SECRET_FILE = 'client_secret.json'
   APPLICATION_NAME = 'Google Sheets API Python Quickstart'
 
+  def __init__(self):
+    self.sheet = self.get_sheet()
 
   def get_credentials(self):
     """Gets valid user credentials from storage.
@@ -76,12 +78,8 @@ class GoogleSheet:
     }
     self.sheet.batchUpdate(spreadsheetId=spreadsheetId, body=body).execute()
 
-  def main(self):
-    self.sheet = self.get_sheet()
-    self.update([['blah','price'], ['foo','thing']])
-
 
 if __name__ == '__main__':
   sheet = GoogleSheet()
-  sheet.main()
+  sheet.update([['blah','price'], ['foo','thing']])
 
