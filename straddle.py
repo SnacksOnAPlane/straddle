@@ -7,7 +7,7 @@ from datetime import date, timedelta
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 import lxml
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 # https://biz.yahoo.com/research/earncal/20170320.html
 
@@ -58,7 +58,7 @@ def try_get_options(sym, name, day):
 
 today = date.today()
 two_weeks = today + timedelta(14)
-with ThreadPoolExecutor(max_workers=10) as executor:
+with ProcessPoolExecutor(max_workers=10) as executor:
   for i in range(1,22): # 3 weeks
     fdata = []
     day = today + timedelta(i)
