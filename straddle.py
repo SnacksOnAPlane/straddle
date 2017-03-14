@@ -7,21 +7,26 @@ from datetime import date, timedelta
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 import lxml
+from concurrent.futures import ThreadPoolExecutor
 
 # https://biz.yahoo.com/research/earncal/20170320.html
+
+def format_date(day):
+  retme = datetime.datetime.strptime(day, "%d-%m-%Y")
+  return retme.date().isoformat()
 
 def get_closest(price, strikes):
   return min(strikes, key=lambda x:abs(x - price))
 
 def get_options(sym, strike_date):
-  put = Put(sym, d=strike_date.day, m=strike_date.month, y=strike_date.year, strict=False)
-  call = Call(sym, d=strike_date.day, m=strike_date.month, y=strike_date.year, strict=False)
+  put = Put(sym, d=strike_date.day, m=strike_date.month, y=strike_date.year, strict=True, source='yahoo')
+  call = Call(sym, d=strike_date.day, m=strike_date.month, y=strike_date.year, strict=True, source='yahoo')
   stock = Stock(sym)
   price = get_closest(stock.price, put.strikes)
   put.set_strike(price)
   call.set_strike(price)
 
-  return [stock.price, price, put.price, call.price, put.expiration, call.expiration]
+  return [stock.price, price, put.price, put.volume, call.price, call.volume, format_date(put.expiration), format_date(call.expiration)]
 
 def get_earnings_reports(day):
   # 20170320
@@ -35,22 +40,31 @@ def get_earnings_reports(day):
     row = [td.text for td in tr.find_all("td")]
     name = row[0]
     sym = row[1]
+    if row[2] == "N/A":
+      continue
     yield name, sym
 
-sheet = GoogleSheet()
+sheet = GoogleSheet('1GCsHow61O6eXPCaviTCqUenlW4W8MGkl47CtIOhNUH4',1490010073)
+
+def try_get_options(sym, name, day):
+  try:
+    data = get_options(sym, date(2017,3,17))
+    print(sym, day, data)
+    sheet.update([[sym, name, date.today().isoformat(), day.isoformat()] + data])
+  except LookupError:
+    print(f"No options for {sym}")
+  except ValueError:
+    print(f"Date not available for {sym}")
+
 today = date.today()
 two_weeks = today + timedelta(14)
-for i in range(1,22): # 3 weeks
-  day = today + timedelta(i)
-  sheet_vals = []
-  for name, sym in get_earnings_reports(day):
-    print(sym)
-    try:
-      data = get_options(sym, two_weeks)
-      print(data)
-      sheet_vals.append([sym, date.today().strftime("%d-%m-%Y"), day.strftime("%d-%m-%Y")] + data)
-    except LookupError:
-      print(f"No options for {sym}")
-    except ValueError:
-      print(f"Date not available for {sym}")
-  sheet.update(sheet_vals)
+with ThreadPoolExecutor(max_workers=10) as executor:
+  for i in range(1,22): # 3 weeks
+    day = today + timedelta(i)
+    if day.weekday() in [5,6]:
+      continue
+    print(day)
+    for name, sym in get_earnings_reports(day):
+      if sym == '' or sym[0].isdigit() or '.' in sym:
+        continue
+      executor.submit(try_get_options, sym, name, date(2017,3,17))

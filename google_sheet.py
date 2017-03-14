@@ -21,8 +21,10 @@ class GoogleSheet:
   CLIENT_SECRET_FILE = 'client_secret.json'
   APPLICATION_NAME = 'Google Sheets API Python Quickstart'
 
-  def __init__(self):
+  def __init__(self, id, sheet_id):
     self.sheet = self.get_sheet()
+    self.id = id
+    self.sheet_id = sheet_id
 
   def get_credentials(self):
     """Gets valid user credentials from storage.
@@ -62,21 +64,20 @@ class GoogleSheet:
     return service.spreadsheets()
 
   def update(self, data):
-    spreadsheetId = '1GCsHow61O6eXPCaviTCqUenlW4W8MGkl47CtIOhNUH4'
     value = lambda x: { "userEnteredValue": {"stringValue": str(x)} }
     rows = [{"values": [value(cell) for cell in row]} for row in data]
     body = {
       "requests": [
         {
           "appendCells": {
-            "sheetId": 0,
+            "sheetId": self.sheet_id,
             "rows": rows,
             "fields": "*",
           }
         }
       ],
     }
-    self.sheet.batchUpdate(spreadsheetId=spreadsheetId, body=body).execute()
+    self.sheet.batchUpdate(spreadsheetId=self.id, body=body).execute()
 
 
 if __name__ == '__main__':
