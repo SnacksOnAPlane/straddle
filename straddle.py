@@ -49,7 +49,7 @@ def try_get_options(sym, name, day):
   try:
     data = get_options(sym, date(2017,3,17))
     print(sym, day, data)
-    return [[sym, name, date.today().isoformat(), day.isoformat()] + data]
+    return [sym, name, date.today().isoformat(), day.isoformat()] + data
   except LookupError:
     print("No options for %s" % sym)
   except ValueError:
