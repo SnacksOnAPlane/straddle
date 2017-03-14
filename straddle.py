@@ -60,6 +60,7 @@ two_weeks = today + timedelta(14)
 with ProcessPoolExecutor(max_workers=4) as executor:
   for i in range(1,22): # 3 weeks
     fdata = []
+    daydata = []
     day = today + timedelta(i)
     if day.weekday() in [5,6]:
       continue
@@ -73,9 +74,10 @@ with ProcessPoolExecutor(max_workers=4) as executor:
       try:
         data = future.result()
         if data:
-          sheet.update(data)
+          daydata.append(data)
       except ssl.SSLError:
         pass
       except ConnectionResetError:
         pass
+    sheet.update(daydata)
 
