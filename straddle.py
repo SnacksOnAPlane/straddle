@@ -7,7 +7,7 @@ from datetime import date, timedelta
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 import lxml
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # https://biz.yahoo.com/research/earncal/20170320.html
 
@@ -26,7 +26,7 @@ def get_options(sym, strike_date):
   put.set_strike(price)
   call.set_strike(price)
 
-  return [stock.price, price, put.price, put.volume, call.price, call.volume, format_date(put.expiration), format_date(call.expiration)]
+  return [sym, stock.price, price, put.price, put.volume, call.price, call.volume, format_date(put.expiration), format_date(call.expiration)]
 
 def get_earnings_reports(day):
   # 20170320
@@ -60,6 +60,7 @@ today = date.today()
 two_weeks = today + timedelta(14)
 with ThreadPoolExecutor(max_workers=10) as executor:
   for i in range(1,22): # 3 weeks
+    fdata = []
     day = today + timedelta(i)
     if day.weekday() in [5,6]:
       continue
@@ -67,4 +68,8 @@ with ThreadPoolExecutor(max_workers=10) as executor:
     for name, sym in get_earnings_reports(day):
       if sym == '' or sym[0].isdigit() or '.' in sym:
         continue
-      executor.submit(try_get_options, sym, name, date(2017,3,17))
+      fdata.append(executor.submit(try_get_options, sym, name, date(2017,3,17)))
+
+    for future in as_completed(fdata):
+      data = future.result()
+
