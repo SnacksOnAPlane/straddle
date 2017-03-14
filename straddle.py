@@ -25,7 +25,7 @@ def get_options(sym, strike_date):
   put.set_strike(price)
   call.set_strike(price)
 
-  return [sym, stock.price, price, put.price, put.volume, call.price, call.volume, format_date(put.expiration), format_date(call.expiration)]
+  return [stock.price, price, put.price, put.volume, call.price, call.volume, format_date(put.expiration), format_date(call.expiration)]
 
 def get_earnings_reports(day):
   # 20170320
