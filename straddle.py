@@ -67,7 +67,7 @@ with ProcessPoolExecutor(max_workers=4) as executor:
     for name, sym in get_earnings_reports(day):
       if sym == '' or sym[0].isdigit() or '.' in sym:
         continue
-      fdata.append(executor.submit(try_get_options, sym, name, date(2017,3,17)))
+      fdata.append(executor.submit(try_get_options, sym, name, day))
 
     for future in as_completed(fdata):
       try:
