@@ -52,9 +52,9 @@ def try_get_options(sym, name, day):
     print(sym, day, data)
     sheet.update([[sym, name, date.today().isoformat(), day.isoformat()] + data])
   except LookupError:
-    print(f"No options for {sym}")
+    print("No options for %s" % sym)
   except ValueError:
-    print(f"Date not available for {sym}")
+    print("Date not available for %s" % sym)
 
 today = date.today()
 two_weeks = today + timedelta(14)
