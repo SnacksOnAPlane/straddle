@@ -49,7 +49,7 @@ def try_get_options(sym, name, day):
   try:
     data = get_options(sym, date(2017,3,17))
     print(sym, day, data)
-    sheet.update([[sym, name, date.today().isoformat(), day.isoformat()] + data])
+    return [[sym, name, date.today().isoformat(), day.isoformat()] + data]
   except LookupError:
     print("No options for %s" % sym)
   except ValueError:
@@ -72,6 +72,8 @@ with ProcessPoolExecutor(max_workers=4) as executor:
     for future in as_completed(fdata):
       try:
         data = future.result()
+        if data:
+          sheet.update(data)
       except ssl.SSLError:
         pass
       except ConnectionResetError:
