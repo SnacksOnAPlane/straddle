@@ -1,4 +1,3 @@
-import csv
 from wallstreet import Stock, Call, Put
 import pdb
 import datetime
@@ -6,8 +5,8 @@ from google_sheet import GoogleSheet
 from datetime import date, timedelta
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
-import lxml
 from concurrent.futures import ProcessPoolExecutor, as_completed
+import ssl
 
 # https://biz.yahoo.com/research/earncal/20170320.html
 
@@ -58,7 +57,7 @@ def try_get_options(sym, name, day):
 
 today = date.today()
 two_weeks = today + timedelta(14)
-with ProcessPoolExecutor(max_workers=10) as executor:
+with ProcessPoolExecutor(max_workers=4) as executor:
   for i in range(1,22): # 3 weeks
     fdata = []
     day = today + timedelta(i)
@@ -71,5 +70,10 @@ with ProcessPoolExecutor(max_workers=10) as executor:
       fdata.append(executor.submit(try_get_options, sym, name, date(2017,3,17)))
 
     for future in as_completed(fdata):
-      data = future.result()
+      try:
+        data = future.result()
+      except ssl.SSLError:
+        pass
+      except ConnectionResetError:
+        pass
 
